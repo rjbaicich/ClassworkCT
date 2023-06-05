@@ -1,0 +1,60 @@
+import psycopg2
+import pandas as pd
+import matplotlib.pyplot as plt
+
+data = pd.read_csv('C:/Users/RedneckRandy/Downloads/forestfires.csv')
+data.head()
+
+# Clean the data
+data['month'] = data['month'].str.capitalize()
+data['day'] = data['day'].str.capitalize()
+
+conn = psycopg2.connect(dbname='hkravmjf',
+                        user='hkravmjf',
+                        password='JIGQ78F61Bb60n8G_45wH1lDK2t0NIco',
+                        host='ruby.db.elephantsql.com')
+cur = conn.cursor()
+
+# Define the columns for the table
+columns = ['X', 'Y', 'month', 'day', 'FFMC', 'DMC', 'DC', 'ISI', 'temp', 'RH', 'wind', 'rain', 'area']
+
+create_table_query = '''
+    CREATE TABLE forest_fires (
+        X INT,
+        Y INT,
+        month VARCHAR(10),
+        day VARCHAR(10),
+        FFMC FLOAT,
+        DMC FLOAT,
+        DC FLOAT,
+        ISI FLOAT,
+        temp FLOAT,
+        RH INT,
+        wind FLOAT,
+        rain FLOAT,
+        area FLOAT
+    )
+'''
+cur.execute(create_table_query)
+
+# Insert the data into the database
+# Iterate over each row in the selected columns of the DataFrame
+# An insert_query with placeholders (%s) for the values
+
+for _, row in data[columns].iterrows():
+    insert_query = '''
+        INSERT INTO forest_fires (X, Y, month, day, FFMC, DMC, DC, ISI, temp, RH, wind, rain, area)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    '''
+    cur.execute(insert_query, tuple(row))
+
+conn.commit()
+
+plt.scatter(data['FFMC'], data['temp'])
+plt.xlabel('FFMC(Fine Fuel Moisture Code)')
+plt.ylabel('TEMPERATURE')
+plt.title('Forest Fires Scatter Plot')
+plt.show()
+
+cur.close()
+conn.close()
