@@ -1,0 +1,83 @@
+---
+title: 'R Project: Spaceship Titanic'
+author: "Randy Baicich"
+date: "06/15/2023"
+output: html_document
+---
+
+## Choose library
+
+```{r}
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+```
+
+## Import CSV
+
+```{r}
+df <- read.csv("C:/Users/RedneckRandy/Downloads/spaceship-titanic/train.csv", sep = ';')
+
+df
+```
+
+```{r}
+my_replace <- function(x){
+  names(x) <- names(x) %>% str_replace_all("\\.", "_")
+  return(x)
+}
+df
+```
+
+```{r}
+df <- my_replace(df)
+df
+```
+
+```{r}
+# Count of missing values
+colSums(is.na(df))
+```
+```{r}
+summary(df)
+```
+```{r}
+df_long <- df %>%
+  pivot_longer(everything(), names_to = "col", values_to = "val") %>%
+  group_by(col) %>%
+  summarise(data_type = class(val))
+
+df_long
+```
+```{r}
+# Calculate the total count of 'TRUE' and 'FALSE' values in the 'CryoSleep' column
+df_cryosleep_total <- df %>%
+  group_by('CryoSleep') %>%
+  summarize(Total_True = sum('CryoSleep' == "TRUE"),
+            Total_False = sum('CryoSleep' == "FALSE"))
+df_cryosleep_total
+```
+
+```{r}
+# Create a bar chart of Room Service vs Food Court
+ggplot(df, aes(x = 'RoomService', y = 'Count', fill = 'RoomService')) +
+  geom_bar(stat = "identity") +
+  labs(x = "RoomService", y = "Number of Passengers", title = "Comparison of Room Service vs Food Court")
+```
+
+```{r}
+# Create a scatterplot of Cabin by Age, colored by HomePlanet
+ggplot(df, aes(x = 'Cabin', y = 'Age', color = 'HomePlanet')) +
+  geom_point() +
+  labs(x = 'Cabin', y = 'Age', title = 'Scatterplot of Cabin by Age, Colored by HomePlanet') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+```{r}
+# Create a box plot of CryoSleep vs Age
+ggplot(df, aes(x = 'CryoSleep', y = 'Age')) +
+  geom_boxplot() +
+  labs(x = 'CryoSleep', y = 'Age', title = 'Box Plot of CryoSleep vs Age')
+```
+
+
